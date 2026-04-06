@@ -4,8 +4,10 @@ import tempfile
 
 # import_path, app_name, route_prefix
 APPS_TO_BUILD = [
-    ('translator_app', 'translator', '/translator'),
-    ('greeting_app', 'greeting', '/greeting'),
+    # ('translator_app', 'translator', '/translator'),
+    # ('greeting_app', 'greeting', '/greeting'),
+    ('chain_app', 'chain', '/chain'),
+    ('stram_app', 'stream', '/stream'),
 ]
 
 def generate_multi_app_config(output_file="config.yaml"):

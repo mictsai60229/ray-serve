@@ -35,7 +35,7 @@ class Translator:
 
     @app.get("/text")
     def translate_text(self, request: TranslatorRequest): 
-        english_text = request['en']
+        english_text = request.language
         text = self.translate(english_text)
 
         return TranslatorResponse(
@@ -45,3 +45,6 @@ class Translator:
     @app.get("/health")
     def get_health(self):
         return JSONResponse(content={"status": "ok"})
+    
+
+translator_app = Translator.bind()
