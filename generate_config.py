@@ -2,12 +2,21 @@ import subprocess
 import yaml
 import tempfile
 
+
+class LiteralStr(str):
+    pass
+
+def literal_representer(dumper, data):
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+
+yaml.add_representer(LiteralStr, literal_representer)
+
 # import_path, app_name, route_prefix
 APPS_TO_BUILD = [
-    # ('translator_app', 'translator', '/translator'),
+    ('translator_app', 'translator', '/translator'),
     # ('greeting_app', 'greeting', '/greeting'),
     ('chain_app', 'chain', '/chain'),
-    ('stram_app', 'stream', '/stream'),
+    ('stream_app', 'stream', '/stream'),
 ]
 
 def generate_multi_app_config(output_file="config.yaml"):
@@ -45,11 +54,25 @@ def generate_multi_app_config(output_file="config.yaml"):
     final_config = app_config
     final_config['applications'] = combined_apps
 
-    # Write to file
+    # Write to file (for local serve test)
     with open(output_file, "w") as f:
         yaml.dump(final_config, f, sort_keys=False)
-    
+
     print(f"✅ Success! {output_file} created with {len(combined_apps)} applications.")
+
+    # Update k8s/ray_service.yaml spec.serveConfigV2
+    ray_service_path = "k8s/ray_service.yaml"
+    with open(ray_service_path, "r") as f:
+        ray_service = yaml.safe_load(f)
+
+    serve_config = yaml.safe_load(ray_service["spec"]["serveConfigV2"])
+    serve_config["applications"] = combined_apps
+    ray_service["spec"]["serveConfigV2"] = LiteralStr(yaml.dump(serve_config, sort_keys=False))
+
+    with open(ray_service_path, "w") as f:
+        yaml.dump(ray_service, f, sort_keys=False)
+
+    print(f"✅ Success! {ray_service_path} serveConfigV2 updated with {len(combined_apps)} applications.")
 
 if __name__ == "__main__":
     generate_multi_app_config()
